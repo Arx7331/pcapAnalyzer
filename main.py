@@ -50,10 +50,7 @@ def analyze_pcap(pcap_file, exclude_ips, save_to_file=False):
     ip_counter = Counter()
     protocol_counter = Counter()
 
-    tcp_flags_counter = Counter()
-
     dport_counter = Counter()
-
     sport_counter = Counter()
 
     total_traffic_bytes = 0 
@@ -71,10 +68,10 @@ def analyze_pcap(pcap_file, exclude_ips, save_to_file=False):
                     protocol_counter.update(['ICMP'])
                 else:
                     protocol_counter.update([packet.transport_layer])
-                if packet.transport_layer == 'TCP':
-                    flags = packet.tcp.flags
-                    tcp_flags_str = tcp_flags_to_str(flags)
-                    tcp_flags_counter.update([tcp_flags_str])
+                if hasattr(packet, 'udp'):
+                    dport_counter.update([packet.udp.dstport])
+                    sport_counter.update([packet.udp.srcport])
+                elif hasattr(packet, 'tcp'):
                     dport_counter.update([packet.tcp.dstport])
                     sport_counter.update([packet.tcp.srcport])
                 total_traffic_bytes += int(packet.length)
@@ -95,13 +92,7 @@ def analyze_pcap(pcap_file, exclude_ips, save_to_file=False):
         percentage = (count / total_packets) * 100
         print(f"[{protocol} {percentage:.2f}%]")
 
-    print("TCP flags:")
-    for flags, count in tcp_flags_counter.items():
-        percentage = (count / total_packets) * 100
-        print(f"[TCP/{flags} {percentage:.2f}%]")
-
     total_traffic_mb = total_traffic_bytes / (1024 * 1024)
-
     print(f"Total Traffic Volume: {total_traffic_mb:.2f} MB")
 
     if dport_counter:
@@ -125,11 +116,6 @@ def analyze_pcap(pcap_file, exclude_ips, save_to_file=False):
             for protocol, count in protocol_counter.items():
                 percentage = (count / total_packets) * 100
                 f.write(f"[{protocol} {percentage:.2f}%]\n")
-
-            f.write("TCP flags:\n")
-            for flags, count in tcp_flags_counter.items():
-                percentage = (count / total_packets) * 100
-                f.write(f"[TCP/{flags} {percentage:.2f}%]\n")
 
             f.write(f"Total Traffic Volume: {total_traffic_mb:.2f} MB\n")
 
