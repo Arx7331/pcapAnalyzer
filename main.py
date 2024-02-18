@@ -59,6 +59,9 @@ def analyze_pcap(pcap_file, exclude_ips, save_to_file=False):
 
     exclude_ips = set(exclude_ips.split(','))
 
+    # Initialize counters for TCP flags
+    tcp_flags_counter = Counter()
+
     for packet in cap:
         try:
             src_ip = packet.ip.src
@@ -74,6 +77,10 @@ def analyze_pcap(pcap_file, exclude_ips, save_to_file=False):
                 elif hasattr(packet, 'tcp'):
                     dport_counter.update([packet.tcp.dstport])
                     sport_counter.update([packet.tcp.srcport])
+
+                    # Increment the appropriate TCP flag counters
+                    tcp_flags_counter.update([tcp_flags_to_str(packet.tcp.flags)])
+                    
                 total_traffic_bytes += int(packet.length)
         except AttributeError:
             pass
@@ -94,6 +101,13 @@ def analyze_pcap(pcap_file, exclude_ips, save_to_file=False):
 
     total_traffic_mb = total_traffic_bytes / (1024 * 1024)
     print(f"Total Traffic Volume: {total_traffic_mb:.2f} MB")
+
+    # Print TCP flags percentages
+    print("TCP Flags Percentages:")
+    total_tcp_packets = sum(tcp_flags_counter.values())
+    for flag, count in tcp_flags_counter.items():
+        percentage = (count / total_tcp_packets) * 100
+        print(f"{flag}: {percentage:.2f}%")
 
     if dport_counter:
         most_common_dport, dport_count = dport_counter.most_common(1)[0]
@@ -118,6 +132,12 @@ def analyze_pcap(pcap_file, exclude_ips, save_to_file=False):
                 f.write(f"[{protocol} {percentage:.2f}%]\n")
 
             f.write(f"Total Traffic Volume: {total_traffic_mb:.2f} MB\n")
+
+            # Write TCP flags percentages to file
+            f.write("TCP Flags Percentages:\n")
+            for flag, count in tcp_flags_counter.items():
+                percentage = (count / total_tcp_packets) * 100
+                f.write(f"{flag}: {percentage:.2f}%\n")
 
             if dport_counter:
                 most_common_dport, dport_count = dport_counter.most_common(1)[0]
