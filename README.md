@@ -1,9 +1,25 @@
 # Pcap Anaylyzer
+## pcapAnalyzer is a simple Python tool for analyzing .pcap files, providing statistics on IPs, protocols, ports, and traffic patterns to help understand network activity.
+
 
 ![image](https://github.com/Arx7331/pcapAnalyzer/assets/131692485/7e5e245a-73d9-4fb0-b255-6ff5ee838a86)
 
+## 🔧 Installation
 
-**Add Ports for services**
+1. **Clone the repository**  
+   ```bash
+   git clone https://github.com/Arx7331/pcapAnalyzer.git
+   cd pcapAnalyze
+   ```
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Running the tool**
+   ```bash
+   python main.py <yourfile.pcap/pcapng>
+   ```
+
 ##### Your services dictonary is on line 7-15
 ```python
 common_services = {
@@ -27,6 +43,3 @@ common_services = {
 - [x] Most common Destination & Source port
 - [x] Exclude ip option
 - [x] Export all information to a txt
-
-## Planned :
-- [ ] Auto Report (Maybe)
